@@ -16,12 +16,15 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('v1')->group(function () {
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::prefix('auth')->group(function () {
+        Route::post('/register', [AuthController::class, 'register']);
+        Route::post('/login', [AuthController::class, 'login']);
 
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::delete('/logout', [AuthController::class, 'logout']);
-        Route::get('/user', [AuthController::class, 'user']);
-        Route::get('/refresh', [AuthController::class, 'refresh']);
+        Route::middleware('auth:sanctum')->group(function () {
+            Route::delete('/logout', [AuthController::class, 'logout']);
+            Route::delete('/logout/refresh', [AuthController::class, 'logoutRefresh']);
+            Route::get('/user', [AuthController::class, 'user']);
+            Route::get('/refresh', [AuthController::class, 'refresh']);
+        });
     });
 });

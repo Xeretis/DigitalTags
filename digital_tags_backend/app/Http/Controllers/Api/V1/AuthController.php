@@ -4,15 +4,18 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\LogoutRefreshRequest;
 use App\Http\Requests\Auth\LogoutRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Services\AuthService\Actions\CreateRefreshTokenAction;
 use App\Services\AuthService\Actions\CreateSessionAction;
 use App\Services\AuthService\Actions\CreateUserAction;
+use App\Services\AuthService\Actions\DeleteRefreshAction;
 use App\Services\AuthService\Actions\DeleteSessionAction;
 use App\Services\AuthService\Actions\RefreshSessionAction;
 use App\Services\AuthService\Data\CreateRefreshTokenData;
 use App\Services\AuthService\Data\CreateUserData;
+use App\Services\AuthService\Data\DeleteRefreshData;
 use App\Services\AuthService\Data\DeleteSessionData;
 use App\Services\AuthService\Data\RefreshSessionData;
 use Illuminate\Http\Request;
@@ -32,7 +35,7 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request) {
         if (!Auth::attempt($request->only(["email", "password"]))) {
-            return jsend()->fail()->errors(['email' => 'Invalid credentials'])->get();
+            return jsend()->fail()->errors(['email' => ['Invalid credentials']])->get();
         }
 
         $token = CreateSessionAction::run();
@@ -56,6 +59,15 @@ class AuthController extends Controller
 
         Cookie::expire('refresh_token');
         DeleteSessionAction::dispatch($data);
+
+        return jsend()->success()->message('Successfully logged out')->get();
+    }
+
+    public function logoutRefresh(LogoutRefreshRequest $request) {
+        $data = DeleteRefreshData::from($request->validated());
+
+        DeleteRefreshAction::dispatch($data);
+        Cookie::expire('refresh_token');
 
         return jsend()->success()->message('Successfully logged out')->get();
     }
